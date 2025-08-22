@@ -72,7 +72,6 @@ class AuthService(
     fun loginUser(username : String, password : String) : TokenPair {
 
         val user = userRepository.findByUsername(username)
-            ?: throw BadCredentialsException("Invalid Credentials.")
 
         if(!hashEncoder.matches(password, user.passwordHash)) {
             throw BadCredentialsException("Invalid Credentials.")

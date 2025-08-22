@@ -39,5 +39,5 @@ data class ActivityLog(
 )
 
 enum class ActionType{
-    UPLOAD, DOWNLOAD, DELETE, SHARE
+    UPLOAD, DOWNLOAD, DELETE, SHARE, LOGIN, REGISTER
 }

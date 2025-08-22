@@ -22,8 +22,6 @@ data class File(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id : Long = 0,
 
-    val userId : Long,
-
     val parentFolderId : Long,
 
     val fileName : String,

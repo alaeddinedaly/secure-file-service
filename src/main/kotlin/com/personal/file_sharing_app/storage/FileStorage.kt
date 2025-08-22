@@ -10,4 +10,5 @@ interface FileStorage {
     fun getFile(fileId : Long, userId : Long) : Resource
     fun listOfFiles(userId : Long) : List<File>
     fun deleteFile(fileId : Long, userId : Long)
+
 }

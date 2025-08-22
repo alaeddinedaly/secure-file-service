@@ -27,11 +27,11 @@ class FileStorageService(
             .orElseThrow { RuntimeException("User not Found.") }
 
         val folder = folderId?.let {
-            folderRepository.findById(it).orElseThrow { RuntimeException("Folder not found.") }
+            folderRepository.findById(it)
+                .orElseThrow { RuntimeException("Folder not found.") }
         }
 
         val savedFile = File(
-            userId = userId,
             parentFolderId = folder?.id ?: 0L,
             fileName = file.originalFilename ?: "Unknown",
             path = path,
@@ -49,7 +49,7 @@ class FileStorageService(
         val file = fileRepository.findById(fileId)
             .orElseThrow { RuntimeException("File not found.") }
 
-        if(file.userId != userId) throw RuntimeException("Access denied.")
+        if(file.owner.id != userId) throw RuntimeException("Access denied.")
 
         return storageService.load(file.path)
     }
@@ -62,7 +62,7 @@ class FileStorageService(
         val file = fileRepository.findById(fileId)
             .orElseThrow { RuntimeException("File not found.") }
 
-        if(file.userId != userId) throw RuntimeException("AccessDenied")
+        if(file.owner.id != userId) throw RuntimeException("AccessDenied")
 
         storageService.delete(file.path)
         fileRepository.delete(file)

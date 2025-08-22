@@ -1,5 +1,6 @@
 package com.personal.file_sharing_app.model
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -29,12 +30,17 @@ data class FileAccess(
     @JoinColumn(name = "user_id")
     val user : User,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_id")
+    val target : User,
+
     @Enumerated(EnumType.STRING)
-    val accessType : AccessType,
+    @Column(name = "access_type")
+    var accessType : FileAccessType,
 
     val sharedAt : LocalDateTime = LocalDateTime.now()
 )
 
-enum class AccessType {
+enum class FileAccessType {
     READ, WRITE, OWNER
 }

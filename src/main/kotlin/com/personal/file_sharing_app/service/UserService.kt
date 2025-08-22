@@ -18,6 +18,10 @@ class UserService(
             .orElseThrow { RuntimeException("User not found.") }
     }
 
+    fun getUserByUsername(username : String) : User {
+        return userRepository.findByUsername(username)
+    }
+
     fun updateUserProfile(userId : Long, updateUserRequest : UpdateUserRequest) : User {
 
         val user = getUserById(userId)

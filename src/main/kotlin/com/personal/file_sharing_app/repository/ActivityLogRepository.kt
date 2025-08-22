@@ -12,5 +12,7 @@ interface ActivityLogRepository : JpaRepository<ActivityLog, Long> {
 
     fun findByFile(file : File) : List<ActivityLog>
 
+    fun findByFileAndUser(file : File, user : User) : List<ActivityLog>
+
     fun findByActionType(actionType : ActionType) : List<ActivityLog>
 }
