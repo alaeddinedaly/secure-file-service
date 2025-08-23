@@ -7,10 +7,10 @@ import com.personal.file_sharing_app.model.File
 import com.personal.file_sharing_app.service.ActivityLogService
 import com.personal.file_sharing_app.service.FileAccessService
 import com.personal.file_sharing_app.service.FileService
-import com.personal.file_sharing_app.service.FileStorageService
 import com.personal.file_sharing_app.service.UserService
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
@@ -30,7 +29,7 @@ import java.nio.file.Paths
 @RestController
 @RequestMapping("/files")
 class FileController(
-    private val fileStorage : FileStorageService,
+    private val fileStorage : FileService,
     private val activityLogService: ActivityLogService,
     private val userService: UserService,
     private val fileService : FileService,
@@ -118,8 +117,25 @@ class FileController(
         return ResponseEntity.ok("File shared successfully.")
     }
 
+    @DeleteMapping("/{file_id}/access/{target_id}")
+    fun removeAccess(
+        @PathVariable("target_id") targetId : Long,
+        @PathVariable("file_id") fileId : Long
+    ) : ResponseEntity<String> {
 
-    @DeleteMapping("/{id}")
+        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+
+        return try {
+            fileAccessService.removeAccess(fileId, userId, targetId)
+            ResponseEntity.ok("File access removed successfully.")
+
+        } catch (e : IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.message)
+        }
+    }
+
+
+    @DeleteMapping("/delete/file/{id}")
     fun deleteFile(@PathVariable id : Long) : ResponseEntity<Void> {
 
         val userId = SecurityContextHolder.getContext().authentication.principal as Long

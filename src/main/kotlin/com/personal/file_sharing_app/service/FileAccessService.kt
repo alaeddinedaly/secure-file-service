@@ -15,33 +15,38 @@ class FileAccessService(
     private val userService: UserService
 ) {
 
-    fun getFileAccess(user : User, file : File) : FileAccess? =
-        fileAccessRepository.findByUserAndFile(user, file)
+    fun getFileAccess(user : User, file : File, target : User) : FileAccess? =
+        fileAccessRepository.findByUserAndFileAndTarget(user, file, target)
 
 
 
     fun shareFile(fileId : Long, ownerId : Long, target : Long, accessType : FileAccessType) : FileAccess {
 
-        val owner = userService.getUserById(ownerId)
+        val sharer = userService.getUserById(ownerId)
         val targetUser = userService.getUserById(target)
 
         val file = fileService.getFileById(fileId)
 
+        val isOwner = file.owner.id == sharer.id
 
-        val fileAccess = getFileAccess(user = owner, file = file)
+        val targetAccess = getFileAccess(sharer, file, targetUser)
 
-        val ownerAccess = fileAccess?.accessType
+        val hasAccess = fileAccessRepository.findByTargetAndFile(sharer, file)
 
-        if(ownerAccess == null || ownerAccess != FileAccessType.WRITE) {
+        if(!isOwner && hasAccess?.accessType != FileAccessType.WRITE) {
             throw IllegalArgumentException("You don't have permission to share file.")
         }
 
-        val targetAccess = getFileAccess(targetUser, file)
+
+
+//        if(targetAccess?.accessType == FileAccessType.READ) {
+//            throw IllegalArgumentException("You don't have permission to share file.")
+//        }
 
         val sharedFile = if(targetAccess == null) {
             FileAccess(
                 file = file,
-                user = owner,
+                user = sharer,
                 target = targetUser,
                 accessType = accessType,
             )
@@ -52,5 +57,18 @@ class FileAccessService(
         }
 
         return fileAccessRepository.save(sharedFile)
+    }
+
+    fun removeAccess(fileId : Long, ownerId : Long, target : Long) {
+
+        val owner = userService.getUserById(ownerId)
+        val targetUser = userService.getUserById(target)
+
+        val file = fileService.getFileById(fileId)
+
+        val fileToDelete = getFileAccess(owner, file, targetUser)
+            ?: throw IllegalArgumentException("Access not found.")
+
+        fileAccessRepository.delete(fileToDelete)
     }
 }
