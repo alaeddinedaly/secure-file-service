@@ -4,6 +4,7 @@ import com.personal.file_sharing_app.dto.UpdateUserRequest
 import com.personal.file_sharing_app.model.User
 import com.personal.file_sharing_app.repository.UserRepository
 import com.personal.file_sharing_app.security.HashEncoder
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
 
@@ -12,6 +13,9 @@ class UserService(
     private val userRepository : UserRepository,
     private val hashEncoder : HashEncoder
 ) {
+
+    fun getCurrentUserId() =
+        SecurityContextHolder.getContext().authentication.principal as Long
 
     fun getUserById(userId : Long) : User {
         return userRepository.findById(userId)

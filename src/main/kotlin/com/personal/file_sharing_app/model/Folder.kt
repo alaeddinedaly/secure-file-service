@@ -1,6 +1,7 @@
 package com.personal.file_sharing_app.model
 
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -19,6 +20,7 @@ data class Folder(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id : Long = 0,
 
+    @Column(unique = true, nullable = false)
     val name : String,
 
     @ManyToOne(fetch = FetchType.LAZY)

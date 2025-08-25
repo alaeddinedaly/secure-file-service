@@ -7,6 +7,8 @@ import com.personal.file_sharing_app.model.File
 import com.personal.file_sharing_app.service.ActivityLogService
 import com.personal.file_sharing_app.service.FileAccessService
 import com.personal.file_sharing_app.service.FileService
+import com.personal.file_sharing_app.service.FolderService
+import com.personal.file_sharing_app.service.TagService
 import com.personal.file_sharing_app.service.UserService
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -33,23 +35,26 @@ class FileController(
     private val activityLogService: ActivityLogService,
     private val userService: UserService,
     private val fileService : FileService,
-    private val fileAccessService: FileAccessService
+    private val fileAccessService: FileAccessService,
+    private val tagService : TagService
 ) {
 
     @PostMapping("/upload")
     fun uploadFile(
-        @RequestParam("file") file : MultipartFile,
-        @RequestParam("folderId", required = false) folderId : Long?,
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam("folderId") folderId: Long
     ) : ResponseEntity<File>{
 
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
         val user =  userService.getUserById(userId)
 
         val savedFile = fileStorage.uploadFile(userId, file, folderId)
+
         val activityLog = ActivityLog(
             user = user,
             file = savedFile,
-            actionType = ActionType.UPLOAD
+            actionType = ActionType.UPLOAD,
+            folder = savedFile.folder
         )
 
         activityLogService.saveLog(activityLog)
@@ -60,7 +65,7 @@ class FileController(
     @GetMapping("/{id}")
     fun downloadFile(@PathVariable id: Long): ResponseEntity<Resource> {
 
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
         val user =  userService.getUserById(userId)
 
         val resource = fileStorage.getFile(id, userId)
@@ -85,9 +90,15 @@ class FileController(
 
     @GetMapping
     fun listOfAllFiles() : List<File> {
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
         return fileStorage.listOfFiles(userId)
     }
+
+    @GetMapping("/{tagName}")
+    fun listOfFilesByTag(
+        @PathVariable tagName : String
+    ) : List<File> = tagService.getFilesByTag(tagName)
+
 
     @PostMapping("/share/{id}")
     fun shareFile(
@@ -95,7 +106,7 @@ class FileController(
         @RequestBody request : ShareFileRequest
     ) : ResponseEntity<String> {
 
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
 
         fileAccessService.shareFile(
             ownerId = userId,
@@ -123,7 +134,7 @@ class FileController(
         @PathVariable("file_id") fileId : Long
     ) : ResponseEntity<String> {
 
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
 
         return try {
             fileAccessService.removeAccess(fileId, userId, targetId)
@@ -138,7 +149,7 @@ class FileController(
     @DeleteMapping("/delete/file/{id}")
     fun deleteFile(@PathVariable id : Long) : ResponseEntity<Void> {
 
-        val userId = SecurityContextHolder.getContext().authentication.principal as Long
+        val userId = userService.getCurrentUserId()
         val user =  userService.getUserById(userId)
 
         val file = fileService.getFileById(id)

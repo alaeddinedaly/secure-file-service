@@ -8,7 +8,9 @@ interface FolderRepository : JpaRepository<Folder, Long> {
 
     fun findByOwner(owner : User) : List<Folder>
 
+    fun findByName(folderName : String) : Folder?
+
     fun findByParentFolder(parentFolder : Folder) : List<Folder>
 
-    fun findByNameContainingIgnoreCase(name : String) : List<Folder>
+    fun findByNameContainingIgnoreCase(name : String) : Folder?
 }

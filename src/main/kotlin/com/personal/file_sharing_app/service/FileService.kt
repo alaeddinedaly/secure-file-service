@@ -15,7 +15,7 @@ class FileService(
     private val fileRepository : FileRepository,
     private val storageService : LocalStorageService,
     private val userRepository: UserRepository,
-    private val folderRepository: FolderRepository
+    private val folderService: FolderService
 ) : FileStorage {
 
     fun getFileById(fileId: Long) : File {
@@ -28,18 +28,24 @@ class FileService(
 
     override fun uploadFile(userId: Long, file: MultipartFile, folderId : Long?) : File {
 
-        val path = storageService.save(file)
-
         val owner = userRepository.findById(userId)
             .orElseThrow { RuntimeException("User not Found.") }
 
-        val folder = folderId?.let {
-            folderRepository.findById(it)
-                .orElseThrow { RuntimeException("Folder not found.") }
+        val folderExists = folderId?.let {
+            folderService.getFolder(it)
         }
 
+        val fileName = file.originalFilename ?: folderId.toString()
+
+        val folderName = fileName.substringBeforeLast('.', fileName)
+
+        val folder = folderExists ?: folderService.createFolder(folderName, owner)
+
+        val path = storageService.save(file, folder.name)
+
+
         val savedFile = File(
-            parentFolderId = folder?.id ?: 0L,
+            parentFolderId = folder.id,
             fileName = file.originalFilename ?: "Unknown",
             path = path,
             size = file.size,

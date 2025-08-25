@@ -13,6 +13,9 @@ interface FileAccessRepository : JpaRepository<FileAccess, Long> {
 
     fun findByUserAndFileAndTarget(user : User, file : File, target : User) : FileAccess?
 
+    fun findByUserAndFile(user : User, file : File) : FileAccess?
+
+
     fun findByTargetAndFile(target : User, file: File) : FileAccess?
 
 }

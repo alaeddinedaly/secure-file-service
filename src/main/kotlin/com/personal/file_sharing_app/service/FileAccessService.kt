@@ -16,8 +16,10 @@ class FileAccessService(
 ) {
 
     fun getFileAccess(user : User, file : File, target : User) : FileAccess? =
-        fileAccessRepository.findByUserAndFileAndTarget(user, file, target)
+        fileAccessRepository.findByUserAndFile(user, file)
 
+    fun checkAccess(user : User, file : File) : Boolean =
+        fileAccessRepository.findByUserAndFile(user, file)?.accessType != FileAccessType.WRITE && user.id != file.owner.id
 
 
     fun shareFile(fileId : Long, ownerId : Long, target : Long, accessType : FileAccessType) : FileAccess {
